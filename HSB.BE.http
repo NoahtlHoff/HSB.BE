@@ -1,0 +1,6 @@
+@HSB.BE_HostAddress = http://localhost:5208
+
+GET {{HSB.BE_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
