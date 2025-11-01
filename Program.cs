@@ -1,6 +1,8 @@
 
+using HSB.BE.Data;
 using HSB.BE.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -12,8 +14,11 @@ namespace HSB.BE
 		{
 			var builder = WebApplication.CreateBuilder(args);
 
-			// Add authentication
-			builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+			builder.Services.AddDbContext<AppDbContext>(options =>
+				options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // Add authentication
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 				.AddJwtBearer(options =>
 				{
 					options.TokenValidationParameters = new TokenValidationParameters
