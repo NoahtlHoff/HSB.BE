@@ -19,9 +19,9 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public IActionResult Login([FromBody] LoginDto loginDto)
     {
-        if (loginDto.Username == "test" && loginDto.Password == "test123")
+        if (loginDto.Email == "test" && loginDto.Password == "test123")
         {
-            var token = GenerateToken(loginDto.Username);
+            var token = GenerateToken(loginDto.Email);
             return Ok(new { token });
         }
 
