@@ -1,0 +1,32 @@
+# Normalize line endings across platforms
+* text=auto eol=crlf
+
+# Force LF for shell scripts, markdown, and configs that run on Linux
+*.sh text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Treat these as binary — don't diff or modify
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.exe binary
+*.dll binary
+*.pdb binary
+*.zip binary
+*.7z binary
+*.mp4 binary
+*.mov binary
+
+# Ensure consistent diff/merge for Visual Studio projects
+*.cs diff=csharp
+*.sln text
+*.csproj text eol=crlf
+*.vbproj text eol=crlf
+*.props text eol=crlf
+*.targets text eol=crlf
+*.config text eol=crlf
