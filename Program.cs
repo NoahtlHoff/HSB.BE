@@ -17,8 +17,8 @@ namespace HSB.BE
 			builder.Services.AddDbContext<AppDbContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            // Add authentication
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+			// Add authentication
+			builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 				.AddJwtBearer(options =>
 				{
 					options.TokenValidationParameters = new TokenValidationParameters
@@ -50,10 +50,10 @@ namespace HSB.BE
 
 			var app = builder.Build();
 
-            app.UseSwagger();
-            app.UseSwaggerUI();
+			app.UseSwagger();
+			app.UseSwaggerUI();
 
-            app.UseHttpsRedirection();
+			app.UseHttpsRedirection();
 
 			app.UseAuthentication();
 			app.UseAuthorization();
