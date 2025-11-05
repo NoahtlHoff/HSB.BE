@@ -17,7 +17,7 @@ public class AuthController : ControllerBase
 	}
 
 	[HttpPost("login")]
-	public IActionResult Login([FromBody] LoginDto loginDto)
+	public IActionResult Login([FromBody] UserInputDto loginDto)
 	{
 		if (loginDto.Email == "test" && loginDto.Password == "test123")
 		{
