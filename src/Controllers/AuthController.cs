@@ -1,51 +1,40 @@
 ﻿using HSB.BE.Dtos;
+using HSB.BE.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+
 
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-	private readonly IConfiguration _configuration;
+	private readonly IAuthService _auth;
+	public AuthController(IAuthService auth) => _auth = auth;
 
-	public AuthController(IConfiguration configuration)
+	[HttpPost("register")]
+	public async Task<IActionResult> Register([FromBody] UserInputDto dto, CancellationToken ct)
 	{
-		_configuration = configuration;
+		try
+		{
+			var result = await _auth.RegisterAsync(dto, ct);
+			return Ok(result);
+		}
+		catch (InvalidOperationException ex)
+		{
+			return Conflict(new { message = ex.Message });
+		}
 	}
 
 	[HttpPost("login")]
-	public IActionResult Login([FromBody] LoginDto loginDto)
+	public async Task<IActionResult> Login([FromBody] UserInputDto dto, CancellationToken ct)
 	{
-		if (loginDto.Email == "test" && loginDto.Password == "test123")
+		try
 		{
-			var token = GenerateToken(loginDto.Email);
-			return Ok(new { token });
+			var result = await _auth.LoginAsync(dto, ct);
+			return Ok(result);
 		}
-
-		return Unauthorized();
-	}
-
-	private string GenerateToken(string username)
-	{
-		var securityKey = new SymmetricSecurityKey(
-			Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-		var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-		var claims = new[]
+		catch (UnauthorizedAccessException)
 		{
-			new Claim(ClaimTypes.Name, username)
-		};
-
-		var token = new JwtSecurityToken(
-			issuer: _configuration["Jwt:Issuer"],
-			audience: _configuration["Jwt:Audience"],
-			claims: claims,
-			expires: DateTime.Now.AddHours(1),
-			signingCredentials: credentials);
-
-		return new JwtSecurityTokenHandler().WriteToken(token);
+			return Unauthorized(new { message = "Invalid email or password." });
+		}
 	}
 }
