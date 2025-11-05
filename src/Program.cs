@@ -1,8 +1,11 @@
 
 using HSB.BE.Data;
+using HSB.BE.Models;
+using HSB.BE.Repository;
 using HSB.BE.Services;
 using HSB.BE.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -18,20 +21,38 @@ namespace HSB.BE
 			builder.Services.AddDbContext<AppDbContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+			builder.Services.AddScoped<IUserRepository, UserRepository>();
+			builder.Services.AddScoped<IAuthService, AuthService>();
+			builder.Services.AddScoped<ITokenService, TokenService>();
+
 			// Add authentication
-			builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+			builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+			builder.Services
+				.AddAuthentication(options =>
+				{
+					options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+					options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+				})
 				.AddJwtBearer(options =>
 				{
+					options.RequireHttpsMetadata = true; // true in prod, change false for testing locally
+					options.SaveToken = true;
+
 					options.TokenValidationParameters = new TokenValidationParameters
 					{
-						ValidateIssuer = true,
-						ValidateAudience = true,
-						ValidateLifetime = true,
 						ValidateIssuerSigningKey = true,
-						ValidIssuer = builder.Configuration["Jwt:Issuer"],
-						ValidAudience = builder.Configuration["Jwt:Audience"],
 						IssuerSigningKey = new SymmetricSecurityKey(
-							Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+							Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+
+						ValidateIssuer = !string.IsNullOrWhiteSpace(builder.Configuration["Jwt:Issuer"]),
+						ValidIssuer = builder.Configuration["Jwt:Issuer"],
+
+						ValidateAudience = !string.IsNullOrWhiteSpace(builder.Configuration["Jwt:Audience"]),
+						ValidAudience = builder.Configuration["Jwt:Audience"],
+
+						ValidateLifetime = true,
+						ClockSkew = TimeSpan.FromMinutes(1)
 					};
 				});
 
@@ -49,8 +70,7 @@ namespace HSB.BE
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 
-			builder.Services.AddScoped<IAuthService, AuthService>();
-			builder.Services.AddScoped<ITokenService, TokenService>();
+			
 
 			var app = builder.Build();
 
