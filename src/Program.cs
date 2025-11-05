@@ -1,5 +1,6 @@
 
 using HSB.BE.Data;
+using HSB.BE.Services;
 using HSB.BE.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -47,6 +48,9 @@ namespace HSB.BE
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
+
+			builder.Services.AddScoped<IAuthService, AuthService>();
+			builder.Services.AddScoped<ITokenService, TokenService>();
 
 			var app = builder.Build();
 
