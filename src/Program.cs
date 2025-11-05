@@ -1,4 +1,3 @@
-
 using HSB.BE.Data;
 using HSB.BE.Models;
 using HSB.BE.Repository;
@@ -70,7 +69,18 @@ namespace HSB.BE
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 
-			
+			// Get CORS origins from config
+			var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+			builder.Services.AddCors(options =>
+			{
+				options.AddPolicy("AllowSpecificOrigins", policy =>
+				{
+					policy
+						.WithOrigins(allowedOrigins!)
+						.AllowAnyHeader()
+						.AllowAnyMethod();
+				});
+			});
 
 			var app = builder.Build();
 
@@ -79,9 +89,10 @@ namespace HSB.BE
 
 			app.UseHttpsRedirection();
 
+			app.UseCors("AllowSpecificOrigins");
+
 			app.UseAuthentication();
 			app.UseAuthorization();
-
 
 			app.MapControllers();
 
