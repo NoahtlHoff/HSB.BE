@@ -5,6 +5,7 @@ using HSB.BE.Settings;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using OpenAI.Chat;
+using System.Text.Json;
 
 namespace HSB.BE.Controllers
 {
@@ -26,6 +27,7 @@ namespace HSB.BE.Controllers
 		[HttpPost("chat")]
 		public async Task StreamChat([FromBody] ChatRequestDto request)
 		{
+			Response.Headers.Append("Cache-Control", "no-cache");
 			Response.Headers.ContentType = "text/event-stream";
 
 			// Convert request messages to OpenAI SDK's ChatMessage class
@@ -50,7 +52,8 @@ namespace HSB.BE.Controllers
 
 					if (!string.IsNullOrEmpty(text))
 					{
-						await Response.WriteAsync($"data: {text}\n\n");
+						var escapedText = JsonSerializer.Serialize(text);
+						await Response.WriteAsync($"data: {escapedText}\n\n");
 						await Response.Body.FlushAsync();
 					}
 				}
