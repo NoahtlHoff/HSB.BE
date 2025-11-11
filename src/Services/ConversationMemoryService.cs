@@ -66,7 +66,7 @@ namespace HSB.BE.Services
 			string userId,
 			string conversationId,
 			string currentQuery,
-			int maxTokens = 4000)
+			int maxTokens = 3000)
 		{
 			var context = new ConversationContext();
 
@@ -92,7 +92,7 @@ namespace HSB.BE.Services
 			// 4. Check if we need to summarize
 			if (recentTokens > maxTokens * 0.6) // If recent messages use >60% of budget
 			{
-				await SummarizeOldMessagesAsync(userId, conversationId, keepRecentCount: 10);
+				await SummarizeOldMessagesAsync(userId, conversationId, keepRecentCount: 20);
 				recentMessages = await GetRecentMessagesAsync(userId, conversationId, count: 20);
 			}
 
@@ -183,17 +183,17 @@ namespace HSB.BE.Services
 			return results;
 		}
 
-		public async Task SummarizeOldMessagesAsync(string userId, string conversationId, int keepRecentCount = 10)
+		public async Task SummarizeOldMessagesAsync(string userId, string conversationId, int keepRecentCount = 20)
 		{
-			// Get all messages older than the recent ones
 			var allMessages = await GetAllConversationMessagesAsync(userId, conversationId);
 
 			if (allMessages.Count <= keepRecentCount)
 				return; // Nothing to summarize
 
+			// Skip summarizing the messages we are keeping.
 			var oldMessages = allMessages.Take(allMessages.Count - keepRecentCount).ToList();
 
-			// Create summary of old messages
+			// Create summary
 			var messagesToSummarize = string.Join("\n", oldMessages.Select(m =>
 				$"{m.Role}: {m.Content}"));
 
@@ -239,9 +239,9 @@ namespace HSB.BE.Services
 		{
 			var queryDefinition = new QueryDefinition(
 				@"SELECT * FROM c 
-              WHERE c.userId = @userId 
-              AND c.conversationId = @conversationId 
-              ORDER BY c.timestamp ASC")
+				WHERE c.userId = @userId 
+				AND c.conversationId = @conversationId 
+				ORDER BY c.timestamp ASC")
 				.WithParameter("@userId", userId)
 				.WithParameter("@conversationId", conversationId);
 
@@ -260,7 +260,6 @@ namespace HSB.BE.Services
 		private async Task<float[]> GenerateEmbeddingAsync(string text)
 		{
 			OpenAIEmbedding embedding = await _embeddingClient.GenerateEmbeddingAsync(text);
-			//ReadOnlyMemory<float> vector = embedding.ToFloats();
 			float[] vector = embedding.ToFloats().ToArray();
 			return vector;
 		}
