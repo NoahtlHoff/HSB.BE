@@ -62,10 +62,10 @@ namespace HSB.BE
 			.ValidateOnStart(); // Makes sure the validation happens on startup instead of lazily.
 
 			builder.Services
-			.AddOptions<CosmosDbOptions>() // returns OptionsBuilder<AzureOpenAIOptions>
+			.AddOptions<CosmosDbOptions>()
 			.Bind(builder.Configuration.GetSection("CosmosDb"))
-			.ValidateDataAnnotations() // Throws an error if necessary appsettings or user secrets are missing.
-			.ValidateOnStart(); // Makes sure the validation happens on startup instead of lazily.
+			.ValidateDataAnnotations()
+			.ValidateOnStart();
 
 			builder.Services.AddSingleton<IConversationMemoryService, ConversationMemoryService>();
 
