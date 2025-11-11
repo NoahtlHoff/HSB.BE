@@ -12,5 +12,8 @@ namespace HSB.BE.Settings
 
 		[Required]
 		public string DeploymentName { get; set; } = default!;
+
+		[Required]
+		public string EmbeddingDeploymentName { get; set; } = default!;
 	}
 }
