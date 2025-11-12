@@ -2,11 +2,9 @@
 {
 	public class ChatRequestDto
 	{
-		public List<ChatMessageDto> Messages { get; set; } = [];
-		public class ChatMessageDto
-		{
-			public string Role { get; set; } = string.Empty;   // "system", "user", "assistant"
-			public string Content { get; set; } = string.Empty;
-		}
+		public string Role { get; set; } = string.Empty;   // "system", "user", "assistant"
+		public string Content { get; set; } = string.Empty;
+		public string UserId { get; set; } = string.Empty;
+		public string ConversationId { get; set; } = string.Empty;
 	}
 }

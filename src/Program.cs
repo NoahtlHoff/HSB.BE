@@ -61,6 +61,14 @@ namespace HSB.BE
 			.ValidateDataAnnotations() // Throws an error if necessary appsettings or user secrets are missing.
 			.ValidateOnStart(); // Makes sure the validation happens on startup instead of lazily.
 
+			builder.Services
+			.AddOptions<CosmosDbOptions>()
+			.Bind(builder.Configuration.GetSection("CosmosDb"))
+			.ValidateDataAnnotations()
+			.ValidateOnStart();
+
+			builder.Services.AddSingleton<IConversationMemoryService, ConversationMemoryService>();
+
 			builder.Services.AddAuthorization();
 			builder.Services.AddControllers();
 
