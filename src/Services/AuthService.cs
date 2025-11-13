@@ -27,11 +27,12 @@ namespace HSB.BE.Services
 		public async Task<AuthResponseDto> RegisterAsync(UserInputDto dto, CancellationToken ct = default)
 		{
 			var email = dto.Email.Trim().ToLowerInvariant();
+			var name = dto.Name?.Trim();
 
 			if (await _users.EmailExistsAsync(email, ct))
 				throw new InvalidOperationException("Email is already registered.");
 
-			var user = new User { Email = email };
+			var user = new User { Name = name, Email = email };
 			user.PasswordHash = _hasher.HashPassword(user, dto.Password);
 
 			user = await _users.AddAsync(user, ct);

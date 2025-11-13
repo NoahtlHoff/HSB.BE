@@ -4,6 +4,7 @@ namespace HSB.BE.Dtos
 {
 	public class UserInputDto
 	{
+		public string? Name { get; set; }
 		[Required]
 		[EmailAddress(ErrorMessage = "Email must be valid")]
 		public string Email { get; set; }
