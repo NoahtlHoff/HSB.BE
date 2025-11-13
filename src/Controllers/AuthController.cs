@@ -8,7 +8,12 @@ using Microsoft.AspNetCore.Mvc;
 public class AuthController : ControllerBase
 {
 	private readonly IAuthService _auth;
-	public AuthController(IAuthService auth) => _auth = auth;
+	private readonly IEmailService _emailService;
+	public AuthController(IEmailService emailService, IAuthService auth)
+	{
+		_emailService = emailService;
+		_auth = auth;
+	}
 
 	[HttpPost("register")]
 	public async Task<IActionResult> Register([FromBody] UserInputDto dto, CancellationToken ct)
@@ -16,6 +21,8 @@ public class AuthController : ControllerBase
 		try
 		{
 			var result = await _auth.RegisterAsync(dto, ct);
+			_ = _emailService.SendWelcomeEmailAsync(dto.Email, dto.Name);
+
 			return Ok(result);
 		}
 		catch (InvalidOperationException ex)

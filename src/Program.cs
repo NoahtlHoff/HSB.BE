@@ -23,6 +23,7 @@ namespace HSB.BE
 			builder.Services.AddScoped<IUserRepository, UserRepository>();
 			builder.Services.AddScoped<IAuthService, AuthService>();
 			builder.Services.AddScoped<ITokenService, TokenService>();
+			builder.Services.AddScoped<IEmailService, EmailService>();
 
 			// Add authentication
 			builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
