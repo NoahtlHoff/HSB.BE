@@ -14,6 +14,9 @@ namespace HSB.BE.Settings
 		public string DatabaseName { get; set; } = default!;
 
 		[Required]
-		public string ContainerName { get; set; } = default!;
+		public string ConversationsContainerName { get; set; } = default!;
+
+		[Required]
+		public string ConversationNamesContainerName { get; set; } = default!;
 	}
 }
