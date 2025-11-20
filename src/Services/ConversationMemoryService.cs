@@ -15,8 +15,9 @@ namespace HSB.BE.Services
 		Task<ConversationContext> BuildContextAsync(string userId, string conversationId, string currentQuery, int maxTokens = 4000);
 		Task SummarizeOldMessagesAsync(string userId, string conversationId, int keepRecentCount = 10);
 		Task<string> CreateConversationName(string userId, string conversationId, string message);
+		Task<List<ConversationMessage>> GetAllConversationMessagesAsync(string userId, string conversationId, bool includeSummaries = true);
+		Task<List<ConversationName>> GetAllConversationNamesAsync(string userId);
 	}
-
 	public class ConversationMemoryService : IConversationMemoryService
 	{
 		private readonly CosmosClient _cosmosClient;
@@ -120,10 +121,10 @@ namespace HSB.BE.Services
 		{
 			var queryDefinition = new QueryDefinition(
 				@"SELECT TOP @count * FROM c 
-				WHERE c.userId = @userId 
-				AND c.conversationId = @conversationId 
-				AND (c.summary = null OR c.summary = '')
-				ORDER BY c.timestamp DESC")
+					WHERE c.userId = @userId 
+					AND c.conversationId = @conversationId 
+					AND (c.summary = null OR c.summary = '')
+					ORDER BY c.timestamp DESC")
 				.WithParameter("@count", count)
 				.WithParameter("@userId", userId)
 				.WithParameter("@conversationId", conversationId);
@@ -236,17 +237,27 @@ namespace HSB.BE.Services
 			}
 		}
 
-		private async Task<List<ConversationMessage>> GetAllConversationMessagesAsync(
+		public async Task<List<ConversationMessage>> GetAllConversationMessagesAsync(
 			string userId,
-			string conversationId)
+			string conversationId,
+			bool includeSummaries = true)
 		{
-			var queryDefinition = new QueryDefinition(
-				@"SELECT * FROM c 
-				WHERE c.userId = @userId 
-				AND c.conversationId = @conversationId 
-				ORDER BY c.timestamp ASC")
+			var sql = @"
+			SELECT * FROM c
+			WHERE c.userId = @userId
+			AND c.conversationId = @conversationId";
+
+			if (!includeSummaries)
+			{
+				sql += " AND (c.summary = null OR c.summary = '')";
+			}
+
+			sql += " ORDER BY c.timestamp ASC";
+
+			var queryDefinition = new QueryDefinition(sql)
 				.WithParameter("@userId", userId)
 				.WithParameter("@conversationId", conversationId);
+
 
 			var results = new List<ConversationMessage>();
 			var iterator = _conversationsContainer.GetItemQueryIterator<ConversationMessage>(queryDefinition);
@@ -285,6 +296,25 @@ namespace HSB.BE.Services
 			return generatedName;
 		}
 
+		public async Task<List<ConversationName>> GetAllConversationNamesAsync(string userId)
+		{
+			var queryDefinition = new QueryDefinition(
+				@"SELECT * FROM c 
+					WHERE c.userId = @userId 
+					ORDER BY c.timestamp ASC")
+				.WithParameter("@userId", userId);
+
+			var results = new List<ConversationName>();
+			var iterator = _conversationNamesContainer.GetItemQueryIterator<ConversationName>(queryDefinition);
+
+			while (iterator.HasMoreResults)
+			{
+				var response = await iterator.ReadNextAsync();
+				results.AddRange(response);
+			}
+			return results;
+		}
+
 		private int EstimateTokenCount(string text)
 		{
 			// Rough estimate: ~4 characters per token
@@ -292,3 +322,4 @@ namespace HSB.BE.Services
 		}
 	}
 }
+
