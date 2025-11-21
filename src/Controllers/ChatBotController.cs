@@ -80,6 +80,9 @@ namespace HSB.BE.Controllers
 			var response = _chatClient.CompleteChatStreamingAsync(messages);
 			var assistantResponse = new StringBuilder();
 
+			await Response.WriteAsync($"id: {conversationId}\n\n");
+			await Response.Body.FlushAsync();
+
 			// Iterate over streamed updates and forward them to the client
 			await foreach (StreamingChatCompletionUpdate update in response)
 			{
