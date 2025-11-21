@@ -42,7 +42,7 @@ namespace HSB.BE.Controllers
 			if (conversationId.IsNullOrEmpty())
 			{
 				conversationId = Guid.NewGuid().ToString();
-				var asd = await _memoryService.CreateConversationName(userId, conversationId, userMessage);
+				var conversationName = await _memoryService.CreateConversationName(userId, conversationId, userMessage);
 			}
 
 			// Build smart context with relevant past conversations
@@ -50,7 +50,7 @@ namespace HSB.BE.Controllers
 				userId,
 				conversationId,
 				userMessage,
-				maxTokens: 2000);
+				maxTokens: 4000);
 
 			// Build messages list
 			var messages = new List<ChatMessage>
