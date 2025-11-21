@@ -71,11 +71,6 @@ namespace HSB.BE
 
 			builder.Services.AddSingleton<IConversationMemoryService, ConversationMemoryService>();
 
-			builder.Services.AddAuthentication(options =>
-			{
-				options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-				options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-			});
 			builder.Services.AddAuthorization();
 
 			builder.Services.AddControllers();
