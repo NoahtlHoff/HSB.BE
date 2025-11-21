@@ -5,6 +5,7 @@ using HSB.BE.Services;
 using HSB.BE.Settings;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using OpenAI.Chat;
 using System.Text;
 using System.Text.Json;
@@ -33,16 +34,23 @@ namespace HSB.BE.Controllers
 		{
 			Response.Headers.Append("Cache-Control", "no-cache");
 			Response.Headers.ContentType = "text/event-stream";
-			var userId = request.UserId; // Add this to your DTO
-			var conversationId = request.ConversationId ?? Guid.NewGuid().ToString();
+			var userId = request.UserId;
+			var conversationId = request.ConversationId;
 			var userMessage = request.Content;
+
+			// Create and save a conversationName if it's a new conversation.
+			if (conversationId.IsNullOrEmpty())
+			{
+				conversationId = Guid.NewGuid().ToString();
+				var conversationName = await _memoryService.CreateConversationName(userId, conversationId, userMessage);
+			}
 
 			// Build smart context with relevant past conversations
 			var context = await _memoryService.BuildContextAsync(
 				userId,
 				conversationId,
 				userMessage,
-				maxTokens: 2000);
+				maxTokens: 4000);
 
 			// Build messages list
 			var messages = new List<ChatMessage>
