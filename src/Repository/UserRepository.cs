@@ -9,6 +9,7 @@ namespace HSB.BE.Repository
 		Task<User?> GetByEmailAsync(string email, CancellationToken ct = default);
 		Task<bool> EmailExistsAsync(string email, CancellationToken ct = default);
 		Task<User> AddAsync(User user, CancellationToken ct = default);
+		Task<User?> GetByIdAsync(int id, CancellationToken ct = default);
 	}
 
 	public class UserRepository : IUserRepository
@@ -27,6 +28,20 @@ namespace HSB.BE.Repository
 			_db.Users.Add(user);
 			await _db.SaveChangesAsync(ct);
 			return user;
+		}
+
+		public Task<User?> GetByIdAsync(int id, CancellationToken ct = default)
+		{
+			try
+			{
+				var user = _db.Users.FirstOrDefaultAsync(u => u.Id == id, ct);
+				return user;
+			}
+			catch (Exception)
+			{
+
+				throw;
+			}
 		}
 	}
 }

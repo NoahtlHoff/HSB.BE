@@ -16,8 +16,9 @@ namespace HSB.BE.Controllers
 	{
 		private readonly ChatClient _chatClient;
 		private readonly IConversationMemoryService _memoryService;
+		private readonly IChatTokenService _chatTokenService;
 
-		public ChatBotController(IOptions<AzureOpenAIOptions> options, IConversationMemoryService memoryService)
+		public ChatBotController(IOptions<AzureOpenAIOptions> options, IConversationMemoryService memoryService, IChatTokenService chatTokenService)
 		{
 			var settings = options.Value;
 			var endpoint = new Uri(settings.Endpoint);
@@ -27,6 +28,7 @@ namespace HSB.BE.Controllers
 			AzureOpenAIClient azureClient = new AzureOpenAIClient(endpoint, key);
 			_chatClient = azureClient.GetChatClient(deploymentName);
 			_memoryService = memoryService;
+			_chatTokenService = chatTokenService;
 		}
 
 		[HttpPost("chat")]
@@ -39,6 +41,16 @@ namespace HSB.BE.Controllers
 			var userMessage = request.Content;
 			var strategy = request.Settings.Strategy;
 			var traderType = request.Settings.Trader;
+
+			int tokens = _chatTokenService.EstimateTokenCount(userMessage);
+			if (!await _chatTokenService.TryConsumeTokens(userId, tokens))
+			{
+				var errorMsg = JsonSerializer.Serialize("Insufficient tokens to process the request.");
+				await Response.WriteAsync($"data: {errorMsg}\n\n");
+				await Response.Body.FlushAsync();
+				await Response.CompleteAsync();
+				return;
+			}
 
 			// Create and save a conversationName if it's a new conversation.
 			if (conversationId.IsNullOrEmpty())
