@@ -37,6 +37,8 @@ namespace HSB.BE.Controllers
 			var userId = request.UserId;
 			var conversationId = request.ConversationId;
 			var userMessage = request.Content;
+			var strategy = request.Settings.Strategy;
+			var traderType = request.Settings.Trader;
 
 			// Create and save a conversationName if it's a new conversation.
 			if (conversationId.IsNullOrEmpty())
@@ -52,14 +54,50 @@ namespace HSB.BE.Controllers
 				userMessage,
 				maxTokens: 4000);
 
-			// Build messages list
+			var baseMessage = @"
+				You are an AI investing advisor assistant.
+
+				You always provide clear, actionable, and specific investment suggestions. 
+				You reference real stocks, ETFs, sectors, indices, commodities, and other tradeable assets when giving advice.
+
+				You have access to the user's conversation history and must use it to:
+				- Align all recommendations with their stated financial goals.
+				- Respect their risk tolerance.
+				- Remember and adapt to their past preferences.
+				- Maintain consistency across sessions.
+
+				When the user asks for investment advice, you should:
+				- Provide specific tickers (e.g., AAPL, MSFT, NVDA, SPY).
+				- Suggest clear actions (e.g., consider buying, selling, holding, waiting for a better entry, setting stop-losses).
+				- Give rationale behind every recommendation.
+				- Mention relevant market conditions, trends, or indicators.
+
+				If the user asks for general information, keep responses concise but still accurate and helpful.
+				";
+
+			if (!request.Settings.Strategy.IsNullOrEmpty())
+			{
+				baseMessage += @$"
+				You are advising a {traderType} who wants to use a {strategy} strategy. 
+				All investment suggestions must be tailored to this profile.
+
+				Adjust:
+				- Time horizons
+				- Asset selection
+				- Risk level
+				- Position sizing
+				- Use of technical vs. fundamental indicators
+
+				Your advice should fully align with this trader profile and strategy.
+				";
+
+			}
+
 			var messages = new List<ChatMessage>
 			{
-				new SystemChatMessage(@"You are an AI investing advisor assistant. 
-					You have access to the user's conversation history. 
-					Use past conversations to provide personalized advice based on their 
-					previously stated goals, risk tolerance, and preferences.")
+				new SystemChatMessage(baseMessage)
 			};
+
 
 			// Add relevant past context if available
 			if (context.RelevantPastMessages.Count != 0)
