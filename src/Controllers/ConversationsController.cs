@@ -34,7 +34,7 @@ namespace HSB.BE.Controllers
 			var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 			if (userId is null)
 				return Unauthorized();
-			var conversation = await _memoryService.GetAllConversationMessagesAsync(conversationId, userId);
+			var conversation = await _memoryService.GetAllConversationMessagesAsync(userId, conversationId, false);
 			return conversation != null ? Ok(conversation) : NotFound();
 		}
 	}

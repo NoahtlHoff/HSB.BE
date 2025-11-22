@@ -123,7 +123,7 @@ namespace HSB.BE.Services
 				@"SELECT TOP @count * FROM c 
 					WHERE c.userId = @userId 
 					AND c.conversationId = @conversationId 
-					AND (c.summary = null OR c.summary = '')
+					AND (IS_NULL(c.summary) OR c.summary = '')
 					ORDER BY c.timestamp DESC")
 				.WithParameter("@count", count)
 				.WithParameter("@userId", userId)
@@ -249,7 +249,7 @@ namespace HSB.BE.Services
 
 			if (!includeSummaries)
 			{
-				sql += " AND (c.summary = null OR c.summary = '')";
+				sql += " AND (IS_NULL(c.summary) OR c.summary = '')";
 			}
 
 			sql += " ORDER BY c.timestamp ASC";
@@ -257,7 +257,6 @@ namespace HSB.BE.Services
 			var queryDefinition = new QueryDefinition(sql)
 				.WithParameter("@userId", userId)
 				.WithParameter("@conversationId", conversationId);
-
 
 			var results = new List<ConversationMessage>();
 			var iterator = _conversationsContainer.GetItemQueryIterator<ConversationMessage>(queryDefinition);
