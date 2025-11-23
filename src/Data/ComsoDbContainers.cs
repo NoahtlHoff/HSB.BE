@@ -4,12 +4,12 @@ using Microsoft.Extensions.Options;
 
 namespace HSB.BE.Data
 {
-	public interface ICosmoDbContext
+	public interface ICosmoDbContainers
 	{
 		Microsoft.Azure.Cosmos.Container ConversationsContainer { get; }
 		Microsoft.Azure.Cosmos.Container ConversationNamesContainer { get; }
 	}
-	public class ComsoDbContainers : ICosmoDbContext
+	public class ComsoDbContainers : ICosmoDbContainers
 	{
 		public Microsoft.Azure.Cosmos.Container ConversationsContainer { get; }
 		public Microsoft.Azure.Cosmos.Container ConversationNamesContainer { get; }
