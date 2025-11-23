@@ -1,3 +1,5 @@
+using Azure;
+using Azure.AI.OpenAI;
 using HSB.BE.Data;
 using HSB.BE.Models;
 using HSB.BE.Repository;
@@ -6,8 +8,10 @@ using HSB.BE.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OpenAI.Chat;
 using System.Text;
 
 namespace HSB.BE
@@ -21,10 +25,38 @@ namespace HSB.BE
 			builder.Services.AddDbContext<AppDbContext>(options =>
 				options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+			builder.Services
+			.AddOptions<CosmosDbOptions>()
+			.Bind(builder.Configuration.GetSection("CosmosDb"))
+			.ValidateDataAnnotations()
+			.ValidateOnStart();
+
+			builder.Services
+			.AddOptions<AzureOpenAIOptions>() // returns OptionsBuilder<AzureOpenAIOptions>
+			.Bind(builder.Configuration.GetSection("AzureOpenAI"))
+			.ValidateDataAnnotations() // Throws an error if necessary appsettings or user secrets are missing.
+			.ValidateOnStart(); // Makes sure the validation happens on startup instead of lazily.
+
+			builder.Services.AddSingleton<ChatClient>(sp =>
+			{
+				var opts = sp.GetRequiredService<IOptions<AzureOpenAIOptions>>().Value;
+
+				var endpoint = new Uri(opts.Endpoint);
+				var key = new AzureKeyCredential(opts.ApiKey);
+
+				var azureClient = new AzureOpenAIClient(endpoint, key);
+
+				return azureClient.GetChatClient(opts.DeploymentName);
+			});
+
+
 			builder.Services.AddScoped<IUserRepository, UserRepository>();
+			builder.Services.AddScoped<IChatRepository, ChatRepository>();
+
 			builder.Services.AddScoped<IAuthService, AuthService>();
 			builder.Services.AddScoped<ITokenService, TokenService>();
 			builder.Services.AddScoped<IEmailService, EmailService>();
+			builder.Services.AddScoped<IChatService, ChatService>();
 
 			// Add authentication
 			builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -57,17 +89,6 @@ namespace HSB.BE
 					};
 				});
 
-			builder.Services
-			.AddOptions<AzureOpenAIOptions>() // returns OptionsBuilder<AzureOpenAIOptions>
-			.Bind(builder.Configuration.GetSection("AzureOpenAI"))
-			.ValidateDataAnnotations() // Throws an error if necessary appsettings or user secrets are missing.
-			.ValidateOnStart(); // Makes sure the validation happens on startup instead of lazily.
-
-			builder.Services
-			.AddOptions<CosmosDbOptions>()
-			.Bind(builder.Configuration.GetSection("CosmosDb"))
-			.ValidateDataAnnotations()
-			.ValidateOnStart();
 
 			builder.Services.AddSingleton<IConversationMemoryService, ConversationMemoryService>();
 
