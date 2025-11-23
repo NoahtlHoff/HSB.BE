@@ -77,7 +77,9 @@ namespace HSB.BE
 			builder.Services.AddScoped<IAuthService, AuthService>();
 			builder.Services.AddScoped<ITokenService, TokenService>();
 			builder.Services.AddScoped<IEmailService, EmailService>();
+			builder.Services.AddScoped<IChatTokenService, ChatTokenService>();
 			builder.Services.AddScoped<IChatService, ChatService>();
+
 
 			// Add authentication
 			builder.Services.AddScoped<IPasswordHasher<Models.User>, PasswordHasher<Models.User>>();
