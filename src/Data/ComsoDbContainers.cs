@@ -18,7 +18,7 @@ namespace HSB.BE.Data
 			var opt = options.Value;
 			Database database = client.GetDatabase(opt.DatabaseName);
 			ConversationsContainer = database.GetContainer(opt.ConversationsContainerName);
-			ConversationNamesContainer = database.GetContainer(opt.ConversationsContainerName);
+			ConversationNamesContainer = database.GetContainer(opt.ConversationNamesContainerName);
 		}
 	}
 }
