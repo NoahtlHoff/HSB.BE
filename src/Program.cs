@@ -69,7 +69,7 @@ namespace HSB.BE
 				return new CosmosClient(opts.Endpoint, opts.Key);
 			});
 
-			builder.Services.AddSingleton<ICosmoDbContext, ComsoDbContainers>();
+			builder.Services.AddSingleton<ICosmoDbContainers, ComsoDbContainers>();
 
 			builder.Services.AddScoped<IUserRepository, UserRepository>();
 			builder.Services.AddScoped<IChatRepository, ChatRepository>();
@@ -78,6 +78,7 @@ namespace HSB.BE
 			builder.Services.AddScoped<ITokenService, TokenService>();
 			builder.Services.AddScoped<IEmailService, EmailService>();
 			builder.Services.AddScoped<IChatService, ChatService>();
+			builder.Services.AddScoped<IChatTokenService, ChatTokenService>();
 
 			// Add authentication
 			builder.Services.AddScoped<IPasswordHasher<Models.User>, PasswordHasher<Models.User>>();

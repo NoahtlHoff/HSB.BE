@@ -51,6 +51,13 @@ namespace HSB.BE.Services
 			string systemPrompt = BuildSystemPrompt(strategy, traderType);
 			var messages = BuildMessages(systemPrompt, context, userMessage);
 
+
+			int tokenCount = 0;
+			int totalLength = messages
+				.SelectMany(m => m.Content)
+				.OfType<ChatMessageContentPart>()
+				.Sum(p => p.Text.Length);
+			Console.WriteLine($"[ChatService] Total message length: {totalLength} characters");
 			var assistantFull = new StringBuilder();
 
 			await foreach (var token in _chatRepository.StreamChatCompletion(messages))
