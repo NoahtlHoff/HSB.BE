@@ -9,9 +9,9 @@ namespace HSB.BE.Services
 		public Task<bool> TryConsumeTokens(int userId, int tokensNeeded);
 		public int EstimateTokenCount(string text);
 	}
-	public class ChatTokenService(UserRepository userRepository) : IChatTokenService
+	public class ChatTokenService(IUserRepository userRepository) : IChatTokenService
 	{
-		private readonly UserRepository _userRepository = userRepository;
+		private readonly IUserRepository _userRepository = userRepository;
 
 		public int EstimateTokenCount(string text)
 		{

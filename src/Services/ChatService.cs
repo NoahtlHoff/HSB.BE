@@ -3,6 +3,7 @@ using HSB.BE.Models;
 using HSB.BE.Repository;
 using OpenAI.Chat;
 using System.Text;
+using System.Text.Json;
 
 namespace HSB.BE.Services
 {
@@ -53,22 +54,32 @@ namespace HSB.BE.Services
 
 
 			int tokenCount = 0;
-			int totalLength = messages
+			int tokens = messages
 				.SelectMany(m => m.Content)
 				.OfType<ChatMessageContentPart>()
-				.Sum(p => p.Text.Length);
-			Console.WriteLine($"[ChatService] Total message length: {totalLength} characters");
-			var assistantFull = new StringBuilder();
+				.Sum(p => p.Text.Length)/4;
 
-			await foreach (var token in _chatRepository.StreamChatCompletion(messages))
+			int intUserId = Int32.Parse(userId);
+
+			if (!await _chatTokenService.TryConsumeTokens(intUserId, tokens))
 			{
-				assistantFull.Append(token);
-				yield return token;
+				var errorMsg = JsonSerializer.Serialize("Insufficient tokens to process the request.");
+				yield return errorMsg;
 			}
+			else
+			{
+				var assistantFull = new StringBuilder();
 
-			// Save user and assistant messages
-			await _memoryService.SaveMessageAsync(userId, conversationId, "user", userMessage);
-			await _memoryService.SaveMessageAsync(userId, conversationId, "assistant", assistantFull.ToString());
+				await foreach (var token in _chatRepository.StreamChatCompletion(messages))
+				{
+					assistantFull.Append(token);
+					yield return token;
+				}
+
+				// Save user and assistant messages
+				await _memoryService.SaveMessageAsync(userId, conversationId, "user", userMessage);
+				await _memoryService.SaveMessageAsync(userId, conversationId, "assistant", assistantFull.ToString());
+			}
 		}
 
 		private List<ChatMessage> BuildMessages(string prompt, ConversationContext context, string userMessage)
