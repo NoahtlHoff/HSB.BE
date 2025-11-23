@@ -1,17 +1,18 @@
 using Azure;
 using Azure.AI.OpenAI;
 using HSB.BE.Data;
-using HSB.BE.Models;
 using HSB.BE.Repository;
 using HSB.BE.Services;
 using HSB.BE.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Azure.Cosmos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OpenAI.Chat;
+using OpenAI.Embeddings;
 using System.Text;
 
 namespace HSB.BE
@@ -37,18 +38,38 @@ namespace HSB.BE
 			.ValidateDataAnnotations() // Throws an error if necessary appsettings or user secrets are missing.
 			.ValidateOnStart(); // Makes sure the validation happens on startup instead of lazily.
 
-			builder.Services.AddSingleton<ChatClient>(sp =>
+			builder.Services.AddSingleton<AzureOpenAIClient>(sp =>
 			{
 				var opts = sp.GetRequiredService<IOptions<AzureOpenAIOptions>>().Value;
 
-				var endpoint = new Uri(opts.Endpoint);
-				var key = new AzureKeyCredential(opts.ApiKey);
-
-				var azureClient = new AzureOpenAIClient(endpoint, key);
-
-				return azureClient.GetChatClient(opts.DeploymentName);
+				return new AzureOpenAIClient(
+					new Uri(opts.Endpoint),
+					new AzureKeyCredential(opts.ApiKey)
+				);
 			});
 
+			builder.Services.AddSingleton<ChatClient>(sp =>
+			{
+				var opts = sp.GetRequiredService<IOptions<AzureOpenAIOptions>>().Value;
+				var client = sp.GetRequiredService<AzureOpenAIClient>();
+
+				return client.GetChatClient(opts.DeploymentName);
+			});
+
+			builder.Services.AddSingleton<EmbeddingClient>(sp =>
+			{
+				var opts = sp.GetRequiredService<IOptions<AzureOpenAIOptions>>().Value;
+				var client = sp.GetRequiredService<AzureOpenAIClient>();
+				return client.GetEmbeddingClient(opts.EmbeddingDeploymentName);
+			});
+
+			builder.Services.AddSingleton<CosmosClient>(sp =>
+			{
+				var opts = sp.GetRequiredService<IOptions<CosmosDbOptions>>().Value;
+				return new CosmosClient(opts.Endpoint, opts.Key);
+			});
+
+			builder.Services.AddSingleton<ICosmoDbContext, ComsoDbContainers>();
 
 			builder.Services.AddScoped<IUserRepository, UserRepository>();
 			builder.Services.AddScoped<IChatRepository, ChatRepository>();
@@ -59,7 +80,7 @@ namespace HSB.BE
 			builder.Services.AddScoped<IChatService, ChatService>();
 
 			// Add authentication
-			builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+			builder.Services.AddScoped<IPasswordHasher<Models.User>, PasswordHasher<Models.User>>();
 
 			builder.Services
 				.AddAuthentication(options =>

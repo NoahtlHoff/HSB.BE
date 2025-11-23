@@ -1,9 +1,6 @@
-﻿using Azure;
-using Azure.AI.OpenAI;
+﻿using HSB.BE.Data;
 using HSB.BE.Models;
-using HSB.BE.Settings;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Options;
 using OpenAI.Chat;
 using OpenAI.Embeddings;
 
@@ -18,9 +15,9 @@ namespace HSB.BE.Services
 		Task<List<ConversationMessage>> GetAllConversationMessagesAsync(string userId, string conversationId, bool includeSummaries = true);
 		Task<List<ConversationName>> GetAllConversationNamesAsync(string userId);
 	}
+
 	public class ConversationMemoryService : IConversationMemoryService
 	{
-		private readonly CosmosClient _cosmosClient;
 		private readonly Microsoft.Azure.Cosmos.Container _conversationsContainer;
 		private readonly Microsoft.Azure.Cosmos.Container _conversationNamesContainer;
 		private readonly EmbeddingClient _embeddingClient;
@@ -28,23 +25,15 @@ namespace HSB.BE.Services
 		private const int EMBEDDING_DIMENSIONS = 1536; // text-embedding-ada-002
 
 		public ConversationMemoryService(
-			IOptions<CosmosDbOptions> cosmosOptions,
-			IOptions<AzureOpenAIOptions> openAIOptions)
+			ICosmoDbContainers cosmoDbContainers,
+			ChatClient chatClient,
+			EmbeddingClient embeddingClient)
 		{
-			var cosmosSettings = cosmosOptions.Value;
-			_cosmosClient = new CosmosClient(cosmosSettings.Endpoint, cosmosSettings.Key);
+			_conversationsContainer = cosmoDbContainers.ConversationsContainer;
+			_conversationNamesContainer = cosmoDbContainers.ConversationNamesContainer;
 
-			var database = _cosmosClient.GetDatabase(cosmosSettings.DatabaseName);
-			_conversationsContainer = database.GetContainer(cosmosSettings.ConversationsContainerName);
-			_conversationNamesContainer = database.GetContainer(cosmosSettings.ConversationNamesContainerName);
-
-			var openAISettings = openAIOptions.Value;
-			var azureClient = new AzureOpenAIClient(
-				new Uri(openAISettings.Endpoint),
-				new AzureKeyCredential(openAISettings.ApiKey));
-
-			_embeddingClient = azureClient.GetEmbeddingClient(openAISettings.EmbeddingDeploymentName);
-			_chatClient = azureClient.GetChatClient(openAISettings.DeploymentName);
+			_chatClient = chatClient;
+			_embeddingClient = embeddingClient;
 		}
 
 		public async Task SaveMessageAsync(string userId, string conversationId, string role, string content)
