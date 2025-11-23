@@ -15,10 +15,12 @@ namespace HSB.BE.Services
 	{
 		private readonly IChatRepository _chatRepository;
 		private readonly IConversationMemoryService _memoryService;
+		private readonly IChatTokenService _chatTokenService;
 
 		public ChatService(
 			IChatRepository chatRepository,
-			IConversationMemoryService memoryService)
+			IConversationMemoryService memoryService,
+			IChatTokenService chatTokenService)
 		{
 			_chatRepository = chatRepository;
 			_memoryService = memoryService;

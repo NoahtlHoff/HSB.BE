@@ -39,9 +39,14 @@ namespace HSB.BE.Repository
 			}
 			catch (Exception)
 			{
-
 				throw;
 			}
+		}
+		public async Task<User> UpdateAsync(User user, CancellationToken ct = default)
+		{
+			_db.Users.Update(user);
+			await _db.SaveChangesAsync(ct);
+			return user;
 		}
 	}
 }

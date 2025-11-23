@@ -6,7 +6,7 @@ namespace HSB.BE.Services
 {
 	public interface IChatTokenService
 	{
-		public bool TryConsumeTokens(int userId, int tokensNeeded);
+		public Task<bool> TryConsumeTokens(int userId, int tokensNeeded);
 		public int EstimateTokenCount(string text);
 	}
 	public class ChatTokenService(UserRepository userRepository) : IChatTokenService
@@ -21,23 +21,29 @@ namespace HSB.BE.Services
 
 		public async Task<bool> TryConsumeTokens(int userId, int tokensNeeded)
 		{
-			User user = await _userRepository.GetByIdAsync(userId);
-			ResetTokensIfNeeded(user);
+			User? user = await _userRepository.GetByIdAsync(userId);
+			if (user == null) return false;
+
+			bool wasReset = ResetTokensIfNeeded(user);
+			if (wasReset) await _userRepository.UpdateAsync(user);
 
 			if (user.ChatTokens >= tokensNeeded)
 			{
 				user.ChatTokens -= tokensNeeded;
+				await _userRepository.UpdateAsync(user);
 				return true;
 			}
 			return false;
 		}
-		private void ResetTokensIfNeeded(User user)
+		private bool ResetTokensIfNeeded(User user)
 		{
 			if (DateTime.UtcNow.Date > user.LastTokenResetUtc.Date)
 			{
 				user.ChatTokens = 12000;
 				user.LastTokenResetUtc = DateTime.UtcNow;
+				return true;
 			}
+			return false;
 		}
 	}
 }
