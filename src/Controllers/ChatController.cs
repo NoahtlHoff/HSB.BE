@@ -1,6 +1,8 @@
 ﻿using HSB.BE.Dtos;
 using HSB.BE.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace HSB.BE.Controllers
@@ -15,9 +17,18 @@ namespace HSB.BE.Controllers
 			_chatBotService = chatBotService;
 		}
 
+		[Authorize]
 		[HttpPost("chat")]
 		public async Task StreamChat([FromBody] ChatRequestDto request)
 		{
+			var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			if (userId is null)
+			{
+				Response.StatusCode = StatusCodes.Status401Unauthorized;
+				return;
+			}
+			request.UserId = userId;
+
 			Response.Headers.Append("Cache-Control", "no-cache");
 			Response.Headers.ContentType = "text/event-stream";
 
