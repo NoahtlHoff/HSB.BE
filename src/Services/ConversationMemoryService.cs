@@ -25,7 +25,7 @@ namespace HSB.BE.Services
 		private const int EMBEDDING_DIMENSIONS = 1536; // text-embedding-ada-002
 
 		public ConversationMemoryService(
-			ICosmoDbContainers cosmoDbContainers,
+			ICosmosDbContainers cosmoDbContainers,
 			ChatClient chatClient,
 			EmbeddingClient embeddingClient)
 		{

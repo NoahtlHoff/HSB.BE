@@ -37,6 +37,7 @@ namespace HSB.BE.Controllers
 				if (update.StartsWith("id:"))
 				{
 					await Response.WriteAsync($"{update}\n\n");
+					await Response.Body.FlushAsync();
 				}
 				else
 				{

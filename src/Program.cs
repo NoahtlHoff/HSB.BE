@@ -69,7 +69,7 @@ namespace HSB.BE
 				return new CosmosClient(opts.Endpoint, opts.Key);
 			});
 
-			builder.Services.AddSingleton<ICosmoDbContainers, ComsoDbContainers>();
+			builder.Services.AddSingleton<ICosmosDbContainers, CosmosDbContainers>();
 
 			builder.Services.AddScoped<IUserRepository, UserRepository>();
 			builder.Services.AddScoped<IChatRepository, ChatRepository>();
