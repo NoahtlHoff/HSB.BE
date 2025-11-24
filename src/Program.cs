@@ -79,7 +79,7 @@ namespace HSB.BE
 			builder.Services.AddScoped<IEmailService, EmailService>();
 			builder.Services.AddScoped<IChatTokenService, ChatTokenService>();
 			builder.Services.AddScoped<IChatService, ChatService>();
-
+			builder.Services.AddScoped<IConversationMemoryService, ConversationMemoryService>();
 
 			// Add authentication
 			builder.Services.AddScoped<IPasswordHasher<Models.User>, PasswordHasher<Models.User>>();
@@ -112,8 +112,6 @@ namespace HSB.BE
 					};
 				});
 
-
-			builder.Services.AddSingleton<IConversationMemoryService, ConversationMemoryService>();
 
 			builder.Services.AddAuthorization();
 
@@ -161,8 +159,11 @@ namespace HSB.BE
 
 			var app = builder.Build();
 
-			app.UseSwagger();
-			app.UseSwaggerUI();
+			if (app.Environment.IsDevelopment())
+			{
+				app.UseSwagger();
+				app.UseSwaggerUI();
+			}
 
 			app.UseHttpsRedirection();
 
