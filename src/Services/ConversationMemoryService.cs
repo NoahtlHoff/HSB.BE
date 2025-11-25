@@ -289,7 +289,7 @@ namespace HSB.BE.Services
 			var queryDefinition = new QueryDefinition(
 				@"SELECT * FROM c 
 					WHERE c.userId = @userId 
-					ORDER BY c.timestamp ASC")
+					ORDER BY c.timestamp DESC")
 				.WithParameter("@userId", userId);
 
 			var results = new List<ConversationName>();
