@@ -52,12 +52,10 @@ namespace HSB.BE.Services
 			string systemPrompt = BuildSystemPrompt(strategy, traderType);
 			var messages = BuildMessages(systemPrompt, context, userMessage);
 
-
-			int tokenCount = 0;
 			int tokens = messages
 				.SelectMany(m => m.Content)
 				.OfType<ChatMessageContentPart>()
-				.Sum(p => p.Text.Length)/4;
+				.Sum(p => p.Text.Length) / 4;
 
 			int intUserId = Int32.Parse(userId);
 
